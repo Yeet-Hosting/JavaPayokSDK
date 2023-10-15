@@ -74,14 +74,14 @@ public class Payok {
             response.setDate(map.get("date"));
             response.setMethod(map.get("method"));
 
-            response.setCustom(new HashMap<>() {{
-                map.forEach((key, value) -> {
-                    Matcher matcher = customParameterPattern.matcher(key);
-                    if (matcher.find())
-                        put(matcher.group(1), value);
-                });
-            }});
+            var custom = new HashMap<String, String>();
+            map.forEach((key, value) -> {
+                Matcher matcher = customParameterPattern.matcher(key);
+                if (matcher.find())
+                    custom.put(matcher.group(1), value);
+            });
 
+            response.setCustom(custom);
             response.setUnderpayment(map.getOrDefault("underpayment", "0").equals("1"));
 
             responseHandler.accept(response);
