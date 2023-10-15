@@ -11,7 +11,7 @@ import java.math.BigInteger;
 import java.security.*;
 import java.util.*;
 import java.util.function.*;
-import java.util.regex.Pattern;
+import java.util.regex.*;
 
 @Setter
 public class Payok {
@@ -76,7 +76,7 @@ public class Payok {
 
             response.setCustom(new HashMap<>() {{
                 map.forEach((key, value) -> {
-                    var matcher = customParameterPattern.matcher(key);
+                    Matcher matcher = customParameterPattern.matcher(key);
                     if (matcher.find())
                         put(matcher.group(1), value);
                 });
