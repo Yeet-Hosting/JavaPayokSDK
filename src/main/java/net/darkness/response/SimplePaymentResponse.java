@@ -21,5 +21,5 @@ public class SimplePaymentResponse implements PaymentResponse {
     private String date;
     private String method;
     private Map<String, String> custom;
-    private int underpayment;
+    private boolean underpayment;
 }

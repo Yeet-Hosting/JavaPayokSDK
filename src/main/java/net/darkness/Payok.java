@@ -1,16 +1,16 @@
 package net.darkness;
 
 import lombok.*;
-import net.darkness.request.*;
+import net.darkness.request.PaymentRequest;
 import net.darkness.response.*;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.util.UrlEncoded;
-import spark.*;
+import spark.Spark;
 
 import java.math.BigInteger;
 import java.security.*;
 import java.util.*;
-import java.util.function.Consumer;
+import java.util.function.*;
 import java.util.regex.Pattern;
 
 @Setter
@@ -35,53 +35,63 @@ public class Payok {
     @Setter
     private static String secretKey;
 
+    @Getter
+    @Setter
+    private static Supplier<PaymentResponse> responseSupplier = SimplePaymentResponse::new;
+
     /**
      * Handles a response after successful payment
-     * @param path HTTP path to your handler
+     *
+     * @param path            HTTP path to your handler
      * @param responseHandler A handler to handle the response
      */
     public static void handlePaymentResponse(String path, Consumer<PaymentResponse> responseHandler) {
-        Spark.post(path, (request, response) -> {
-            if (!payokAPIAddresses.contains(request.ip())) {
-                response.status(403);
+        Spark.post(path, (req, resp) -> {
+            if (!payokAPIAddresses.contains(req.ip())) {
+                resp.status(403);
                 return HttpStatus.getCode(403);
             }
 
             var map = new HashMap<String, String>();
 
-            for (var entry : request.body().split("&")) {
+            for (var entry : req.body().split("&")) {
                 var parts = entry.split("=");
                 map.put(UrlEncoded.decodeString(parts[0]), UrlEncoded.decodeString(parts[1]));
             }
 
-            responseHandler.accept(SimplePaymentResponse.builder()
-                    .amount(Float.parseFloat(map.get("amount")))
-                    .profit(Float.parseFloat(map.get("profit")))
-                    .paymentID(Integer.parseInt(map.get("payment_id")))
-                    .shopID(Integer.parseInt(map.get("shop")))
-                    .desc(map.get("desc"))
-                    .currency(map.get("currency"))
-                    .currencyAmount(Float.parseFloat(map.get("currency_amount")))
-                    .sign(map.get("sign"))
-                    .email(map.get("email"))
-                    .date(map.get("date"))
-                    .method(map.get("method"))
-                    .custom(new HashMap<>() {{
-                        map.forEach((key, value) -> {
-                            var matcher = customParameterPattern.matcher(key);
-                            if (matcher.find())
-                                put(matcher.group(1), value);
-                        });
-                    }})
-                    .underpayment(Integer.parseInt(map.getOrDefault("underpayment", "0")))
-                    .build());
+            var response = responseSupplier.get();
 
+            response.setAmount(Float.parseFloat(map.get("amount")));
+            response.setProfit(Float.parseFloat(map.get("profit")));
+            response.setPaymentID(Integer.parseInt(map.get("payment_id")));
+            response.setShopID(Integer.parseInt(map.get("shop")));
+
+            response.setDesc(map.get("desc"));
+            response.setCurrency(map.get("currency"));
+            response.setCurrencyAmount(Float.parseFloat(map.get("currency_amount")));
+            response.setSign(map.get("sign"));
+            response.setEmail(map.get("email"));
+            response.setDate(map.get("date"));
+            response.setMethod(map.get("method"));
+
+            response.setCustom(new HashMap<>() {{
+                map.forEach((key, value) -> {
+                    var matcher = customParameterPattern.matcher(key);
+                    if (matcher.find())
+                        put(matcher.group(1), value);
+                });
+            }});
+
+            response.setUnderpayment(map.getOrDefault("underpayment", "0").equals("1"));
+
+            responseHandler.accept(response);
             return "";
         });
     }
 
     /**
      * Generates a payment link for Payok API
+     *
      * @param request A request with all payment information
      * @return The generated link
      */
@@ -120,9 +130,9 @@ public class Payok {
                 String.valueOf(amount),
                 String.valueOf(paymentID),
                 String.valueOf(shopID),
-                currency,
-                desc,
-                Objects.requireNonNull(secretKey)
+                Objects.requireNonNull(currency, "'currency' must not be null!"),
+                Objects.requireNonNull(desc, "'desc' must not be null!"),
+                Objects.requireNonNull(secretKey, "'Payok.secretKey' must not be null!")
         ).getBytes())).toString(16);
     }
 }
