@@ -11,7 +11,7 @@ import java.math.BigInteger;
 import java.security.*;
 import java.util.*;
 import java.util.function.*;
-import java.util.regex.*;
+import java.util.regex.Pattern;
 
 @Setter
 public class Payok {
@@ -44,12 +44,24 @@ public class Payok {
     private static Supplier<PaymentResponse> responseSupplier = SimplePaymentResponse::new;
 
     /**
-     * Handles a response after successful payment
+     * Binds a simple request mapping to handle incoming payment responses.
      *
      * @param path            HTTP path to your handler
      * @param responseHandler A handler to handle the response
      */
     public static void handlePaymentResponse(String path, Consumer<PaymentResponse> responseHandler) {
+        handlePaymentResponse(4567, path, responseHandler);
+    }
+
+    /**
+     * Binds a simple request mapping to handle incoming payment responses.
+     *
+     * @param port            The port to bind
+     * @param path            HTTP path to your handler
+     * @param responseHandler A handler to handle the response
+     */
+    public static void handlePaymentResponse(int port, String path, Consumer<PaymentResponse> responseHandler) {
+        Spark.port(port);
         Spark.post(path, (req, resp) -> {
             if (!payokAPIAddresses.contains(req.ip())) {
                 resp.status(403);
