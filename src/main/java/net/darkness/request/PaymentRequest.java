@@ -9,8 +9,6 @@ public interface PaymentRequest {
 
     int getPaymentID();
 
-    int getShopID();
-
     default String getDesc() {
         return "No Description Provided";
     }
@@ -20,7 +18,7 @@ public interface PaymentRequest {
     }
 
     default String getSign() {
-        return Payok.generateSign(getAmount(), getPaymentID(), getShopID(), getCurrency(), getDesc());
+        return Payok.generateSign(getAmount(), getPaymentID(), getCurrency(), getDesc());
     }
 
     default String getEmail() {

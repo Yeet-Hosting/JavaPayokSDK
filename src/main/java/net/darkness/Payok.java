@@ -33,6 +33,10 @@ public class Payok {
 
     @Getter
     @Setter
+    private static int shopID;
+
+    @Getter
+    @Setter
     private static String secretKey;
 
     @Getter
@@ -63,12 +67,14 @@ public class Payok {
 
             response.setAmount(Float.parseFloat(map.get("amount")));
             response.setProfit(Float.parseFloat(map.get("profit")));
+
             response.setPaymentID(Integer.parseInt(map.get("payment_id")));
             response.setShopID(Integer.parseInt(map.get("shop")));
 
             response.setDesc(map.get("desc"));
             response.setCurrency(map.get("currency"));
             response.setCurrencyAmount(Float.parseFloat(map.get("currency_amount")));
+
             response.setSign(map.get("sign"));
             response.setEmail(map.get("email"));
             response.setDate(map.get("date"));
@@ -76,7 +82,7 @@ public class Payok {
 
             var custom = new HashMap<String, String>();
             map.forEach((key, value) -> {
-                Matcher matcher = customParameterPattern.matcher(key);
+                var matcher = customParameterPattern.matcher(key);
                 if (matcher.find())
                     custom.put(matcher.group(1), value);
             });
@@ -100,7 +106,8 @@ public class Payok {
 
         builder.append("?amount=").append(request.getAmount());
         builder.append("&payment=").append(request.getPaymentID());
-        builder.append("&shop=").append(request.getShopID());
+
+        builder.append("&shop=").append(shopID);
         builder.append("&desc=").append(UrlEncoded.encodeString(request.getDesc()));
 
         if (request.getCurrency() != null)
@@ -125,7 +132,7 @@ public class Payok {
     }
 
     @SneakyThrows(NoSuchAlgorithmException.class)
-    public static String generateSign(int amount, int paymentID, int shopID, String currency, String desc) {
+    public static String generateSign(int amount, int paymentID, String currency, String desc) {
         return new BigInteger(1, MessageDigest.getInstance("MD5").digest(String.join("|",
                 String.valueOf(amount),
                 String.valueOf(paymentID),
