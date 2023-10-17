@@ -11,7 +11,6 @@ import java.util.Map;
 public class SimplePaymentRequest implements PaymentRequest {
     private int amount;
     private int paymentID;
-    private int shopID;
     private String desc;
     private String currency;
     private String email;
