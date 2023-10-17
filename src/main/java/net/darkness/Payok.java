@@ -143,15 +143,19 @@ public class Payok {
         return builder.append("&sign=").append(request.getSign()).toString();
     }
 
-    @SneakyThrows(NoSuchAlgorithmException.class)
     public static String generateSign(int amount, int paymentID, String currency, String desc) {
+        return generateSign(amount, paymentID, getShopID(), currency, desc, getSecretKey());
+    }
+
+    @SneakyThrows(NoSuchAlgorithmException.class)
+    public static String generateSign(int amount, int paymentID, int shopID, String currency, String desc, String secretKey) {
         return new BigInteger(1, MessageDigest.getInstance("MD5").digest(String.join("|",
                 String.valueOf(amount),
                 String.valueOf(paymentID),
                 String.valueOf(shopID),
                 Objects.requireNonNull(currency, "'currency' must not be null!"),
                 Objects.requireNonNull(desc, "'desc' must not be null!"),
-                Objects.requireNonNull(secretKey, "'Payok.secretKey' must not be null!")
+                Objects.requireNonNull(secretKey, "'secretKey' must not be null!")
         ).getBytes())).toString(16);
     }
 }

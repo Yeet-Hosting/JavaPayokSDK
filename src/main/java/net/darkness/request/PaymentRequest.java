@@ -9,6 +9,10 @@ public interface PaymentRequest {
 
     int getPaymentID();
 
+    default int getShopID() {
+        return Payok.getShopID();
+    }
+
     default String getDesc() {
         return "No Description Provided";
     }
@@ -17,8 +21,12 @@ public interface PaymentRequest {
         return "RUB";
     }
 
+    default String getSecretKey() {
+        return Payok.getSecretKey();
+    }
+
     default String getSign() {
-        return Payok.generateSign(getAmount(), getPaymentID(), getCurrency(), getDesc());
+        return Payok.generateSign(getAmount(), getPaymentID(), getShopID(), getCurrency(), getDesc(), getSecretKey());
     }
 
     default String getEmail() {
