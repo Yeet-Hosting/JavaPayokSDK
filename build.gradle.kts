@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "net.darkness"
-version = "1.0"
+version = "1.5"
 
 java {
     withSourcesJar()
